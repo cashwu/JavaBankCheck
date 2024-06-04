@@ -1,6 +1,7 @@
 package com.cashwu.javabankcheck;
 
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,6 +16,16 @@ public class BankStatementProcessor {
         this.bankTransactions = bankTransactions;
     }
 
+    public double summarizeTransactions(BankTransactionSummarizer bankTransactionSummarizer) {
+
+        double result = 0;
+        for (BankTransaction bankTransaction : bankTransactions) {
+            result = bankTransactionSummarizer.summarize(result, bankTransaction);
+        }
+
+        return result;
+    }
+
     double calculateTotalAmount() {
 
         double total = 0;
@@ -25,30 +36,40 @@ public class BankStatementProcessor {
         return total;
     }
 
-    double calculateTotalAmountInMonth(Month month) {
+    public double calculateTotalAmountInMonth(Month month) {
 
-        double total = 0;
+        return summarizeTransactions(
+                (acc, bankTransaction) -> bankTransaction.getDate().getMonth() == month ?
+                        acc + bankTransaction.getAmount() :
+                        acc);
+    }
+
+    public double calculateForCategory(String category) {
+
+        return summarizeTransactions(
+                (acc, bankTransaction) -> bankTransaction.getDescription().equals(category) ?
+                        acc + bankTransaction.getAmount() :
+                        acc);
+    }
+
+    public List<BankTransaction> findTransactions(BankTransactionFilter bankTransactionFilter) {
+
+        List<BankTransaction> result = new ArrayList<>();
         for (BankTransaction bankTransaction : bankTransactions) {
 
-            if (bankTransaction.getDate().getMonth() == month) {
-                total += bankTransaction.getAmount();
+            if (bankTransactionFilter.test(bankTransaction)) {
+                result.add(bankTransaction);
             }
         }
 
-        return total;
-    }
-    double calculateForCategory(String category) {
-
-        double total = 0;
-        for (BankTransaction bankTransaction : bankTransactions) {
-
-            if (bankTransaction.getDescription().equals(category))  {
-                total += bankTransaction.getAmount();
-            }
-        }
-
-        return total;
+        return result;
     }
 
+    public List<BankTransaction> findTransactionsGreaterThanEqual(int amount) {
+
+        return findTransactions(bankTransaction -> bankTransaction.getAmount() >= 1_000);
+    }
 
 }
+
+

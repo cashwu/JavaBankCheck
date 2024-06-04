@@ -12,11 +12,11 @@ import java.util.List;
  * @since 2024/06/03
  */
 public class BankStatementAnalyzer {
-//    private static final String RESOURCES = "src/main/resources/";
+    //    private static final String RESOURCES = "src/main/resources/";
     private static final String RESOURCES = "src/main/resources/";
 
-      public void analyze(String fileName,
-                          BankStatementParser bankStatementParser) throws IOException {
+    public void analyze(String fileName,
+                        BankStatementParser bankStatementParser) throws IOException {
         Path path = Paths.get(RESOURCES + fileName);
         List<String> lines = Files.readAllLines(path);
 
@@ -24,6 +24,11 @@ public class BankStatementAnalyzer {
         var bankStatementProcessor = new BankStatementProcessor(bankTransactions);
 
         collectSummary(bankStatementProcessor);
+
+        //        bankStatementProcessor.findTransactions(new BankTransactionIsInFebruaryAndExpensive());
+        bankStatementProcessor.findTransactions(
+                bankTransaction -> bankTransaction.getDate().getMonth() == Month.FEBRUARY
+                        && bankTransaction.getAmount() >= 1_000);
     }
 
     private void collectSummary(BankStatementProcessor bankStatementProcessor) {
@@ -40,5 +45,6 @@ public class BankStatementAnalyzer {
 
         System.out.println(
                 "total salary : " + bankStatementProcessor.calculateForCategory("Salary"));
+
     }
 }
